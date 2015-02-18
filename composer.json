@@ -1,0 +1,24 @@
+{
+  "name": "yrizos/berk",
+  "homepage": "https://github.com/yrizos/berk",
+  "type": "tool",
+  "keywords": ["git"],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Yannis Rizos",
+      "email": "yrizos@gmail.com",
+      "homepage": "https://twitter.com/yrizos"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=5.4.0",
+    "symfony/console": "2.6.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Berk\\": "src/"
+    }
+  }
+}

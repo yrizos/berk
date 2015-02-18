@@ -1,0 +1,16 @@
+{
+  "directories": [
+    "src"
+  ],
+  "finder": [
+    {
+      "name": "*.php",
+      "exclude": ["Tests"],
+      "in": "vendor"
+    }
+  ],
+  "main": "bin/berk",
+  "output": "berk.phar",
+  "stub": true,
+  "chmod": "0755"
+}

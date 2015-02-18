@@ -20,5 +20,12 @@
     "psr-4": {
       "Berk\\": "src/"
     }
+  },
+  "bin": [
+    "bin/berk"
+  ],
+  "config": {
+    "bin-dir": "bin",
+    "vendor-dir": "src/vendors"
   }
 }

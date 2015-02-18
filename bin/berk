@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 $dir_self     = dirname(__FILE__);

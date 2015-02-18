@@ -26,8 +26,6 @@ class Git
             throw new \RuntimeException('Command ' . $command . ' returned exit code: ' . $return);
         }
 
-        if (!is_array($output)) $output = [''];
-
         return $output;
     }
 
@@ -49,6 +47,7 @@ class Git
     public static function isUpdated()
     {
         $output = self::exec('git', ['status', '-s']);
+        $output = is_array($output) && !empty($output) ? $output[0] : false;
 
         return empty($output[0]);
     }
@@ -58,9 +57,47 @@ class Git
         $output = self::exec('git', ['rev-parse', '--show-toplevel']);
         $output = $output[0];
 
-        if(is_dir($output)) $output = realpath($output);
+        if (is_dir($output)) $output = realpath($output);
 
         return $output;
+    }
+
+    public static function inWorkingDirectory()
+    {
+        return self::getWorkingDirectory() === getcwd();
+    }
+
+    public static function getCommitsSince($hash)
+    {
+        $hash   = trim($hash) . '^..HEAD';
+        $output = self::exec('git', ['rev-list', $hash]);
+
+        return $output;
+    }
+
+    public static function getCommitFiles($hash)
+    {
+        $output = self::exec('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', $hash]);
+
+        return $output;
+    }
+
+    public static function getFilesSince($hash)
+    {
+        $files  = [];
+        $hashes = Git::getCommitsSince($hash);
+
+        foreach ($hashes as $hash) {
+            $hash_files = Git::getCommitFiles($hash);
+
+            foreach ($hash_files as $file) $files[] = $file;
+        }
+
+        $files = array_unique($files);
+        ksort($files);
+
+        return $files;
+
     }
 
 }

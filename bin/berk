@@ -8,8 +8,6 @@ foreach ($dir_autoload as $dir) {
     if (is_file($inc_autoload)) require_once $inc_autoload;
 }
 
-$app = new \Symfony\Component\Console\Application('berk');
-$app->add(new \Berk\Command\InfoCommand());
-$app->add(new \Berk\Command\PackSinceCommitCommand());
-
+$app = new \Berk\Berk();
 $app->run();
+

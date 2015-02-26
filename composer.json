@@ -26,6 +26,6 @@
   ],
   "config": {
     "bin-dir": "bin",
-    "vendor-dir": "src/vendors"
+    "vendor-dir": "vendor"
   }
 }

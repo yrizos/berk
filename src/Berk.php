@@ -4,14 +4,14 @@ namespace Berk;
 
 use Berk\Command\ConfigCommand;
 use Berk\Command\DeployCommand;
-use Berk\Command\CheckCommand;
+use Berk\Command\InfoCommand;
 use Symfony\Component\Console\Application as SymfonyApplication;
 
 class Berk extends SymfonyApplication
 {
     const NAME = 'berk';
     const VERSION = '0.0.1';
-    const FILE_CONFIGURATION = 'berk.json';
+    const FILE_CONFIGURATION = '.berk.json';
 
     private $configuration = [];
 
@@ -19,8 +19,9 @@ class Berk extends SymfonyApplication
     {
         parent::__construct(self::NAME, self::VERSION);
 
+        $this->add(new InfoCommand());
         $this->add(new ConfigCommand());
-        $this->add(new CheckCommand());
+        $this->add(new DeployCommand());
     }
 
     public function getConfigurationPath()

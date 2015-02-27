@@ -18,11 +18,11 @@ class ConfigCommand extends Command
 
     public function execute(InputInterface $i, OutputInterface $o)
     {
-        $path   = $this->getApplication()->getConfigurationPath();
-        $config = $this->getApplication()->getConfiguration();
+        $config_path = $this->getApplication()->getConfigurationPath();
+        $config      = $this->getApplication()->getConfiguration();
 
         if (!empty($config)) {
-            $o->writeln($this->color("Configuration read from {$path}", "green"));
+            $o->writeln($this->color("Configuration read from {$config_path}", "green"));
 
 
             foreach ($config as $server => $c) {
@@ -64,7 +64,7 @@ class ConfigCommand extends Command
                 'port'     => $port,
                 'username' => $user,
                 'password' => $pass,
-                'path'     => $path
+                'path'     => trim($path, '/')
             ];
 
             $o->writeln('');
@@ -75,15 +75,13 @@ class ConfigCommand extends Command
         ksort($config);
 
         foreach ($config as $k => $v) {
-            ksort($v);
             $config[$k] = array_map('trim', $v);
         }
 
-
         $config = json_encode($config);
 
-        file_put_contents($path, $config);
+        file_put_contents($config_path, $config);
 
-        $o->writeln($this->color("Configuration saved in {$path}", "green"));
+        $o->writeln($this->color("Configuration saved in {$config_path}", "green"));
     }
 }

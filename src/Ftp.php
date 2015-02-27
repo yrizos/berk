@@ -8,6 +8,10 @@ class Ftp
 
     private $conn;
     private $path;
+    private $host;
+    private $port;
+    private $username;
+    private $password;
 
     public function __construct($host, $port, $username, $password, $path)
     {
@@ -27,7 +31,11 @@ class Ftp
             throw new \ErrorException("Couldn't change directory to " . $this->getRootPath());
         }
 
-        $this->conn = $conn;
+        $this->conn     = $conn;
+        $this->host     = $host;
+        $this->port     = $port;
+        $this->username = $username;
+        $this->password = $password;
     }
 
     public function __destruct()
@@ -82,7 +90,7 @@ class Ftp
 
         unlink($temp);
 
-        $this->log("Revision changed: " . $revision);
+        $this->log("[REV CHANGE] " . $revision);
 
         return $revision;
     }
@@ -120,5 +128,49 @@ class Ftp
         unlink($temp);
 
         return $log;
+    }
+
+    public function fileExists($file)
+    {
+        return ftp_size($this->getConnection(), $file) > 0;
+    }
+
+    public function upload($local, $remote, $backup = false)
+    {
+        $backup = $backup === true;
+        if ($backup && $this->fileExists($remote)) {
+            $backup = $remote . "." . time() . ".berk";
+            $rename = ftp_rename($this->getConnection(), $remote, $backup);
+
+            if (!$rename) throw new \ErrorException("Backing up {$remote} failed.");
+        }
+
+        $this->mkdir($remote);
+        $upload = ftp_put($this->getConnection(), $remote, $local, FTP_BINARY);
+
+        if (!$upload) throw new \ErrorException("Uploading {$remote} failed.");
+
+        return true;
+    }
+
+    private function mkdir($remote)
+    {
+        $remote = explode('/', $remote);
+        array_pop($remote);
+
+        if(empty($remote)) return true;
+
+        $current = ftp_pwd($this->getConnection());
+
+        foreach($remote as $dir) {
+            if(!@ftp_chdir($this->getConnection(), $dir)) {
+                ftp_mkdir($this->getConnection(), $dir);
+                ftp_chdir($this->getConnection(), $dir);
+            }
+        }
+
+        ftp_chdir($this->getConnection(), $current);
+
+        return true;
     }
 }

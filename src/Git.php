@@ -83,15 +83,19 @@ class Git
 
     public static function getCommitFiles($hash)
     {
+        $dir    = self::getWorkingDirectory();
         $output = self::exec(['diff-tree', '--no-commit-id', '--name-only', '-r', $hash]);
+        $output = array_map(function ($value) use ($dir) {
+            return $dir . "/" . $value;
+        }, $output);
 
         return $output;
     }
 
-    public static function getFilesSince($hash)
+    public static function getAllFilesSince($hash)
     {
         $files  = [];
-        $hashes = Git::getCommitsSince($hash);
+        $hashes = Git::getAllCommitsSince($hash);
 
         foreach ($hashes as $hash) {
             $hash_files = Git::getCommitFiles($hash);
@@ -103,7 +107,23 @@ class Git
         ksort($files);
 
         return $files;
-
     }
 
+    public static function getAllCommits()
+    {
+        $output = self::exec(['rev-list', '--all']);
+
+        return $output;
+    }
+
+    public static function getAllCommitsSince($hash)
+    {
+        $all = self::getAllCommits();
+        $key = array_search($hash, $all, true);
+
+        if ($key === false) return $all;
+        if ($key === 0) return [];
+
+        return array_slice($all, 0, $key);
+    }
 }

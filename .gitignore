@@ -2,3 +2,4 @@
 /vendor
 composer.lock
 berk.phar
+.DS_Store

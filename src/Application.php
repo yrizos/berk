@@ -7,7 +7,7 @@ use Berk\Command\DeployCommand;
 use Berk\Command\InfoCommand;
 use Symfony\Component\Console\Application as SymfonyApplication;
 
-class Berk extends SymfonyApplication
+class Application extends SymfonyApplication
 {
     const NAME = 'berk';
     const VERSION = '0.0.1';

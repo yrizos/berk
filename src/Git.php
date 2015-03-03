@@ -3,8 +3,10 @@ namespace Berk;
 
 class Git
 {
-    private static function exec(array $arguments = [])
+    public static function exec($arguments = '')
     {
+
+        $arguments = explode(' ', $arguments);
         $arguments = array_map(function ($value) {
             $value = is_string($value) ? trim($value) : '';
             $value = escapeshellarg($value);
@@ -30,7 +32,7 @@ class Git
 
     public static function getVersion()
     {
-        $output = self::exec(['--version']);
+        $output = self::exec('--version');
         $output = str_replace('git version', '', $output[0]);
 
         return trim($output);
@@ -38,14 +40,14 @@ class Git
 
     public static function getCurrentBranch()
     {
-        $output = self::exec(['symbolic-ref', '--short', 'HEAD']);
+        $output = self::exec('symbolic-ref --short HEAD');
 
         return $output[0];
     }
 
     public static function isUpdated()
     {
-        $output = self::exec(['status', '-s']);
+        $output = self::exec('status -s');
         $output = is_array($output) && !empty($output) ? $output[0] : false;
 
         return empty($output[0]);
@@ -53,7 +55,7 @@ class Git
 
     public static function getWorkingDirectory()
     {
-        $output = self::exec(['rev-parse', '--show-toplevel']);
+        $output = self::exec('rev-parse --show-toplevel');
         $output = $output[0];
 
         if (is_dir($output)) $output = realpath($output);
@@ -68,23 +70,23 @@ class Git
 
     public static function getLastCommit()
     {
-        $output = self::exec(['rev-list', '--all', '--max-count=1']);
+        $output = self::exec('rev-list --all --max-count=1');
 
         return $output[0];
     }
 
-    public static function getCommitsSince($hash)
+    public static function getCommitsSince($revision)
     {
-        $hash   = trim($hash) . '^..HEAD';
-        $output = self::exec(['rev-list', $hash]);
+        $revision = trim($revision) . '^..HEAD';
+        $output   = self::exec('rev-list ' . $revision);
 
         return $output;
     }
 
-    public static function getCommitFiles($hash)
+    public static function getCommitFiles($revision)
     {
         $dir    = self::getWorkingDirectory();
-        $output = self::exec(['diff-tree', '--no-commit-id', '--name-only', '-r', $hash]);
+        $output = self::exec('diff-tree --no-commit-id --name-only -r ' . $revision);
         $output = array_map(function ($value) use ($dir) {
             return $dir . "/" . $value;
         }, $output);
@@ -92,15 +94,15 @@ class Git
         return $output;
     }
 
-    public static function getAllFilesSince($hash)
+    public static function getAllFilesSince($revision)
     {
-        $files  = [];
-        $hashes = Git::getAllCommitsSince($hash);
+        $files      = [];
+        $revisions = Git::getAllCommitsSince($revision);
 
-        foreach ($hashes as $hash) {
-            $hash_files = Git::getCommitFiles($hash);
+        foreach ($revisions as $revision) {
+            $revision_files = Git::getCommitFiles($revision);
 
-            foreach ($hash_files as $file) $files[] = $file;
+            foreach ($revision_files as $file) $files[] = $file;
         }
 
         $files = array_unique($files);
@@ -111,15 +113,15 @@ class Git
 
     public static function getAllCommits()
     {
-        $output = self::exec(['rev-list', '--all']);
+        $output = self::exec('rev-list --all');
 
         return $output;
     }
 
-    public static function getAllCommitsSince($hash)
+    public static function getAllCommitsSince($revision)
     {
         $all = self::getAllCommits();
-        $key = array_search($hash, $all, true);
+        $key = array_search($revision, $all, true);
 
         if ($key === false) return $all;
         if ($key === 0) return [];

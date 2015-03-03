@@ -70,7 +70,7 @@ class Ftp
 
         $revision = file_get_contents($temp);
         $revision = trim($revision);
-        if (empty($revision)) $revision = 0;
+        if (empty($revision)) $revision = '0';
 
         unlink($temp);
 
@@ -151,6 +151,14 @@ class Ftp
         if (!$upload) throw new \ErrorException("Uploading {$remote} failed.");
 
         return true;
+    }
+
+    public function delete($remote) {
+
+        if(!$this->fileExists($remote)) return true;
+        $delete = @ftp_delete($this->getConnection(), $remote);
+
+        return $delete === true;
     }
 
     private function mkdir($remote)

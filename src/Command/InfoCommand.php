@@ -19,9 +19,9 @@ class InfoCommand extends Command
     public function execute(InputInterface $i, OutputInterface $o)
     {
         $git                      = [];
-        $git["git version"]       = Git::getVersion();
+        $git["git version"]       = Git::getGitVersion();
         $git["current branch"]    = Git::getCurrentBranch();
-        $git["current revision"]  = Git::getLastCommit();
+        $git["current revision"]  = Git::getCurrentRevision();
         $git["working directory"] = Git::getWorkingDirectory();
 
         $table = new Table($o);

@@ -43,7 +43,7 @@ class DeployCommand extends Command
         $ftp        = new Ftp($servers[$server]["host"], $servers[$server]["port"], $servers[$server]["username"], $servers[$server]["password"], $servers[$server]["path"]);
         $rev_remote = $commit ? $commit : $ftp->getRevision();
         $rev_local  = Git::getCurrentRevision();
-        
+
         $o->writeln("<info>Deploying to server: {$server}</info>");
 
         if ($o->isVerbose()) $o->writeln("<comment>- Local revision: " . $rev_local . "</comment>");

@@ -68,7 +68,7 @@ class InfoCommand extends Command
         //        $table    = new Table($o);
         //        $messages = array();
         //
-        //        if (!Git::isUpdated()) $messages[] = $this->color("There are uncommited changes.", "red");
+        //        if (!Git::isUpdated()) $messages[] = $this->color("There are uncommitted changes.", "red");
         //        if (!Git::inWorkingDirectory()) $messages[] = $this->color("You are not in the repository"s working directory.", "red");
         //
         //        foreach ($git_info as $key => $value) $table->addRow([$this->color($key, "yellow"), $value]);

@@ -62,6 +62,14 @@ class Git
         return $output;
     }
 
+    public static function getPreviousRevision()
+    {
+        $output = self::exec('rev-list --all --max-count=2');
+        $output = array_pop($output);
+
+        return $output;
+    }
+
     public static function getWorkingDirectory()
     {
         $output = self::exec('rev-parse --show-toplevel', true);
@@ -116,7 +124,7 @@ class Git
         if ($position_from === false) $position_from = 0;
         if ($position_to === false) $position_to = count($revisions) - 1;
 
-        $length = $position_to - $position_from + 1;
+        $length = $position_to - $position_from;
         if ($length < 1) return [];
 
         return array_slice($revisions, $position_from, $length);
@@ -132,64 +140,7 @@ class Git
         return $output;
     }
 
-    public static function getRevisionFilesBetween($revision_from = null, $revision_to = null)
-    {
-        $revisions = self::getRevisionsBetween($revision_from, $revision_to);
-        $files     = [];
-
-        foreach ($revisions as $revision) $files = $files + self::getRevisionFiles($revision);
-
-        $files = array_unique($files);
-        sort($files);
-
-        return $files;
-    }
-
-
-    public static function isUpdated()
-    {
-        $output = self::exec('status -s');
-        $output = is_array($output) && !empty($output) ? $output[0] : false;
-
-        return empty($output[0]);
-    }
-
-    public static function getCommitsSince($revision)
-    {
-        $revision = trim($revision) . '^..HEAD';
-        $output   = self::exec('rev-list ' . $revision);
-
-        return $output;
-    }
-
-    public static function getCommitFiles($revision)
-    {
-        $output = self::exec('diff-tree --no-commit-id --name-only -r ' . $revision);
-        $output = array_map(function ($path) {
-            return Git::getWorkingPath($path);
-        }, $output);
-
-        return $output;
-    }
-
-    public static function getAllFilesSince($revision)
-    {
-        $files     = Git::getModifiedFiles();
-        $revisions = Git::getAllCommitsSince($revision);
-
-        foreach ($revisions as $revision) {
-            $revision_files = Git::getCommitFiles($revision);
-
-            foreach ($revision_files as $file) $files[] = $file;
-        }
-
-        $files = array_unique($files);
-        ksort($files);
-
-        return $files;
-    }
-
-    public static function getModifiedFiles()
+    public static function getuncommittedFiles()
     {
         $output = self::exec('status --porcelain');
         if (empty($output)) $output = [];
@@ -204,15 +155,25 @@ class Git
         return $output;
     }
 
-
-    public static function getAllCommitsSince($revision)
+    public static function getRevisionFilesBetween($revision_from = null, $revision_to = null)
     {
-        $all = self::getAllCommits();
-        $key = array_search($revision, $all, true);
+        $revisions = self::getRevisionsBetween($revision_from, $revision_to);
+        $files     = [];
 
-        if ($key === false) return $all;
-        if ($key === 0) return [];
+        foreach ($revisions as $revision) $files = $files + self::getRevisionFiles($revision);
 
-        return array_slice($all, 0, $key);
+        $files = array_unique($files);
+
+        return $files;
     }
+
+    public static function isUpdated()
+    {
+        $output = self::exec('status -s');
+        $output = is_array($output) && !empty($output) ? $output[0] : false;
+
+        return empty($output[0]);
+    }
+
+
 }

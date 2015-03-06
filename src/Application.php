@@ -3,6 +3,7 @@
 namespace Berk;
 
 use Berk\Command\ConfigCommand;
+use Berk\Command\DeployCommand;
 use Berk\Command\InfoCommand;
 use Berk\Command\ExportCommand;
 use Symfony\Component\Console\Application as SymfonyApplication;
@@ -39,7 +40,7 @@ class Application extends SymfonyApplication
 
         $this->add(new InfoCommand());
         $this->add(new ConfigCommand());
-        //$this->add(new DeployCommand());
+        $this->add(new DeployCommand());
         $this->add(new ExportCommand());
     }
 

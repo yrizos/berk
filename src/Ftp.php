@@ -153,12 +153,20 @@ class Ftp
         return true;
     }
 
-    public function delete($remote) {
+    public function delete($remote)
+    {
 
-        if(!$this->fileExists($remote)) return true;
-        $delete = @ftp_delete($this->getConnection(), $remote);
+        $result = false;
+        if ($this->fileExists($remote)) {
+            $result = @ftp_delete($this->getConnection(), $remote);
+        }
 
-        return $delete === true;
+        $dirname = dirname($remote);
+        $list   = @ftp_nlist($this->getConnection(), $dirname);
+
+        if(is_array($list) && empty($list)) ftp_rmdir($this->getConnection(), $dirname);
+
+        return $result;
     }
 
     private function mkdir($remote)
@@ -166,12 +174,12 @@ class Ftp
         $remote = explode('/', $remote);
         array_pop($remote);
 
-        if(empty($remote)) return true;
+        if (empty($remote)) return true;
 
         $current = ftp_pwd($this->getConnection());
 
-        foreach($remote as $dir) {
-            if(!@ftp_chdir($this->getConnection(), $dir)) {
+        foreach ($remote as $dir) {
+            if (!@ftp_chdir($this->getConnection(), $dir)) {
                 ftp_mkdir($this->getConnection(), $dir);
                 ftp_chdir($this->getConnection(), $dir);
             }

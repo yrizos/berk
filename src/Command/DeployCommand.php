@@ -34,6 +34,11 @@ class DeployCommand extends Command
         $commit      = $i->getOption("commit");
         $uncommitted = $i->getOption('uncommitted');
 
+        if($dry) {
+            $o->writeln('<question>Dry run. No files will be modified.</question>');
+            $o->setVerbosity(5);
+        }
+
         if (!isset($servers[$server])) {
             $o->writeln("<error>Configuration for server '" . $server . "' not found.</error>");
 
@@ -46,8 +51,8 @@ class DeployCommand extends Command
 
         $o->writeln("<info>Deploying to server: {$server}</info>");
 
-        if ($o->isVerbose()) $o->writeln("<comment>- Local revision: " . $rev_local . "</comment>");
-        if ($o->isVerbose()) $o->writeln("<comment>- Remote revision: " . $rev_remote . "</comment>");
+        if ($o->isVerbose() || $dry) $o->writeln("<comment>- Local revision: " . $rev_local . "</comment>");
+        if ($o->isVerbose() || $dry) $o->writeln("<comment>- Remote revision: " . $rev_remote . "</comment>");
 
         list($modified, $deleted) = $this->getFiles($rev_remote, $rev_local, $uncommitted);
 

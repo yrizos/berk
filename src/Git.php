@@ -3,6 +3,16 @@ namespace Berk;
 
 class Git
 {
+    private static $working_directory = null;
+
+    public static function isGitDirectory($directory)
+    {
+        if (!is_dir($directory)) throw new \InvalidArgumentException('Directory ' . $directory . ' is invalid.');
+        $directory = realpath($directory) . DIRECTORY_SEPARATOR . '.git';
+
+        return is_dir($directory);
+    }
+
     public static function exec($arguments = '', $first_only = false)
     {
 
@@ -32,20 +42,12 @@ class Git
         return $output;
     }
 
-    public static function getNormalizedPath($path)
-    {
-        $path = str_replace(["\\", "/"], "/", $path);
-        $path = rtrim($path, "/");
-
-        return $path;
-    }
-
-    public static function getGitVersion()
+    public static function getVersion()
     {
         $output = self::exec('--version', true);
         $output = str_replace('git version', '', $output);
 
-        return $output;
+        return trim($output);
     }
 
     public static function getCurrentBranch()
@@ -70,64 +72,35 @@ class Git
         return $output;
     }
 
-    public static function getWorkingDirectory()
-    {
-        $output = self::exec('rev-parse --show-toplevel', true);
-
-        if (!empty($output) && is_dir($output)) {
-            $output = realpath($output);
-            $output = self::getNormalizedPath($output);
-
-            return $output;
-        }
-
-        return false;
-    }
-
-    public static function inWorkingDirectory()
-    {
-        $current = self::getNormalizedPath(getcwd());
-        $working = self::getWorkingDirectory();
-
-        return $current === $working;
-    }
-
-    public static function getWorkingPath($path)
-    {
-        $dir  = self::getWorkingDirectory() . "/";
-        $path = self::getNormalizedPath($path);
-
-        if (strpos($path, $dir) !== 0) $path = $dir . $path;
-
-        return $path;
-    }
-
     public static function getRevisions()
     {
         $output = self::exec('rev-list --all');
-        $output = array_reverse($output);
 
         return $output;
     }
 
-    public static function getRevisionsBetween($revision_from = null, $revision_to = null)
+    public static function getWorkingDirectory()
     {
-        $revision_from = trim(strval($revision_from));
-        $revision_to   = trim(strval($revision_to));
-        $revisions     = self::getRevisions();
+        if (null == self::$working_directory) self::$working_directory = realpath(self::exec('rev-parse --show-toplevel', true));
 
-        if (empty($revisions)) return [];
+        return self::$working_directory;
+    }
 
-        $position_from = array_search($revision_from, $revisions);
-        $position_to   = array_search($revision_to, $revisions);
+    public static function inWorkingDirectory()
+    {
+        $working = self::getWorkingDirectory();
 
-        if ($position_from === false) $position_from = 0;
-        if ($position_to === false) $position_to = count($revisions) - 1;
+        return getcwd() === $working;
+    }
 
-        $length = $position_to - $position_from;
-        if ($length < 1) return [];
+    public static function getWorkingPath($path)
+    {
+        $wdir = self::getWorkingDirectory();
+        $path = str_replace(["\\", "/"], DIRECTORY_SEPARATOR, $path);
 
-        return array_slice($revisions, $position_from, $length);
+        if (strpos($path, $wdir) !== 0) $path = $wdir . DIRECTORY_SEPARATOR . $path;
+
+        return $path;
     }
 
     public static function getRevisionFiles($revision)
@@ -140,7 +113,39 @@ class Git
         return $output;
     }
 
-    public static function getuncommittedFiles()
+    public static function getRevisionsBetween($revision_from = null, $revision_to = null)
+    {
+        $revisions     = self::getRevisions();
+        $revisions     = array_reverse($revisions);
+        $position_from = $revision_from ? array_search($revision_from, $revisions) : 0;
+        $position_to   = $revision_to ? array_search($revision_to, $revisions) + 1 : count($revisions);
+
+        if (
+            $position_from === false
+            || $position_to === false
+            || $position_from > $position_to
+        ) return [];
+
+        $revisions = array_slice($revisions, $position_from, $position_to - $position_from);
+        $revisions = array_reverse($revisions);
+
+        return $revisions;
+    }
+
+    public static function getRevisionsFilesBetween($revision_from = null, $revision_to = null)
+    {
+        $revisions = self::getRevisionsBetween($revision_from, $revision_to);
+        $files     = [];
+
+        foreach($revisions as $revision) $files = array_merge($files, self::getRevisionFiles($revision));
+
+        $files = array_unique($files);
+        sort($files);
+
+        return $files;
+    }
+
+    public static function getUncommittedFiles()
     {
         $output = self::exec('status --porcelain');
         if (empty($output)) $output = [];
@@ -154,26 +159,4 @@ class Git
 
         return $output;
     }
-
-    public static function getRevisionFilesBetween($revision_from = null, $revision_to = null)
-    {
-        $revisions = self::getRevisionsBetween($revision_from, $revision_to);
-        $files     = [];
-
-        foreach ($revisions as $revision) $files = $files + self::getRevisionFiles($revision);
-
-        $files = array_unique($files);
-
-        return $files;
-    }
-
-    public static function isUpdated()
-    {
-        $output = self::exec('status -s');
-        $output = is_array($output) && !empty($output) ? $output[0] : false;
-
-        return empty($output[0]);
-    }
-
-
 }

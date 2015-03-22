@@ -8,6 +8,6 @@ foreach ($dir_autoload as $dir) {
     if (is_file($inc_autoload)) require_once $inc_autoload;
 }
 
-$app = new \Berk\Application();
+$app = new Berk\Tool\Application();
 $app->run();
 

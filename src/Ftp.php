@@ -127,17 +127,23 @@ class Ftp
 
         unlink($temp);
 
-        return $log;
+        return array_slice($log, -1000);
     }
 
-    public function fileExists($file)
+    public function fileExists($remote)
     {
-        return ftp_size($this->getConnection(), $file) > 0;
+        $remote = str_replace("\\", "/", $remote);
+        $remote = ltrim($remote, "/");
+
+        return ftp_size($this->getConnection(), $remote) > 0;
     }
 
     public function upload($local, $remote, $backup = false)
     {
         $backup = $backup === true;
+        $remote = str_replace("\\", "/", $remote);
+        $remote = ltrim($remote, "/");
+
         if ($backup && $this->fileExists($remote)) {
             $backup = $remote . "." . time() . ".berk";
             $rename = ftp_rename($this->getConnection(), $remote, $backup);
@@ -155,6 +161,8 @@ class Ftp
 
     public function delete($remote)
     {
+        $remote = str_replace("\\", "/", $remote);
+        $remote = ltrim($remote, "/");
 
         $result = false;
         if ($this->fileExists($remote)) {
@@ -162,15 +170,17 @@ class Ftp
         }
 
         $dirname = dirname($remote);
-        $list   = @ftp_nlist($this->getConnection(), $dirname);
+        $list    = @ftp_nlist($this->getConnection(), $dirname);
 
-        if(is_array($list) && empty($list)) ftp_rmdir($this->getConnection(), $dirname);
+        if (is_array($list) && empty($list)) ftp_rmdir($this->getConnection(), $dirname);
 
         return $result;
     }
 
     private function mkdir($remote)
     {
+        $remote = str_replace("\\", "/", $remote);
+        $remote = ltrim($remote, "/");
         $remote = explode('/', $remote);
         array_pop($remote);
 

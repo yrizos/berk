@@ -1,0 +1,16 @@
+language: php
+
+php:
+  - 5.4
+
+install:
+  - composer install
+  - composer require codeclimate/php-test-reporter:dev-master
+
+before_script: mkdir -p build/logs
+
+script: phpunit --configuration ./tests/phpunit.xml --coverage-clover ./build/logs/clover.xml
+
+after_script:
+  - CODECLIMATE_REPO_TOKEN=5465bc032b3698fe56aa7b2a5575e50edb23bc3313027b0fccb11a2da33c4b95 ./vendor/bin/test-reporter --stdout > codeclimate.json
+  - "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"

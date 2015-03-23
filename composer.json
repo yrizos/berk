@@ -15,8 +15,7 @@
   "require": {
     "php": ">=5.4.0",
     "symfony/console": "2.6.4",
-    "symfony/event-dispatcher": "2.6.4",
-    "rjkip/ftp-php": "dev-master"
+    "symfony/event-dispatcher": "2.6.4"
   },
   "autoload": {
     "psr-4": {

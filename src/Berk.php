@@ -2,13 +2,11 @@
 
 namespace Berk;
 
-use FtpPhp\FtpClient;
-
 class Berk
 {
     const NAME = 'berk';
     const VERSION = '0.0.1';
-    const CONFIG_FILENAME = 'berk.json';
+    const CONFIG_FILENAME = '.berk.json';
     const EXPORT_DIRECTORY = '.berk';
 
     /** @var array */
@@ -47,10 +45,7 @@ class Berk
      */
     public function getAllFiles()
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->getDirectory(), \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
-        );
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->getDirectory(), \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
 
         $files = [];
         foreach ($iterator as $object) {
@@ -63,31 +58,27 @@ class Berk
     /**
      * @param string|null $revision_from
      * @param string|null $revision_to
-     * @param bool $uncommited
+     * @param bool        $uncommited
+     *
      * @return array
      */
     public function getFilesBetween($revision_from = null, $revision_to = null, $uncommited = false)
     {
-        $files =
-            null !== $revision_from && $revision_from === $revision_to
-                ? []
-                : Git::getRevisionsFilesBetween($revision_from, $revision_to);
+        $files = null !== $revision_from && $revision_from === $revision_to ? [] : Git::getRevisionsFilesBetween($revision_from, $revision_to);
 
         if (true === $uncommited) $files = array_merge($files, Git::getUncommittedFiles());
 
-        return $files;
+        return $this->removeIgnoredFiles($files);
     }
 
     private function removeIgnoredFiles(array $files = [])
     {
-        $exclude = $this->getConfiguration()['ignore'];
-        $files   = array_filter($files, function ($path) use ($exclude) {
+        $ignore = $this->getConfiguration()['ignore'];
+        $files  = array_filter($files, function ($path) use ($ignore) {
             if (strpos($path, DIRECTORY_SEPARATOR . '.git' . DIRECTORY_SEPARATOR) !== false) return false;
 
-            foreach ($exclude as $ex) {
-                if (
-                    (is_dir($ex) && strpos($path, $ex) === 0)
-                    || ($ex === $path)
+            foreach ($ignore as $ex) {
+                if ((is_dir($ex) && strpos($path, $ex) === 0) || ($ex === $path)
                 ) return false;
             }
 
@@ -124,10 +115,7 @@ class Berk
         if (!isset($config['servers']) || !is_array($config['servers'])) $config['servers'] = [];
 
         foreach ($config['servers'] as $k => $server) {
-            if (
-                !isset($server['host'])
-                || !isset($server['username'])
-                || !isset($server['password'])
+            if (!isset($server['host']) || !isset($server['username']) || !isset($server['password'])
             ) {
                 throw new \Exception('Configuration for server ' . $k . ' is invalid.');
             }
@@ -149,10 +137,10 @@ class Berk
         $config['ignore'][] = 'LICENSE';
         $config['ignore'][] = 'README.md';
 
-        $files = $directories = [];
         foreach ($config['ignore'] as $key => $path) {
-            $path = realpath(Git::getWorkingPath($path));
+            if (!file_exists($path)) $path = Git::getWorkingPath($path);
 
+            $path = realpath($path);
             if ($path) {
                 $config['ignore'][$key] = $path;
             } else {

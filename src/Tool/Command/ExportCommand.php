@@ -32,6 +32,7 @@ class ExportCommand extends Command
 
         $o->writeln('<info>Discovering files</info>');
         $files = $this->getFiles($revision_from, $revision_to, $uncommited);
+        $files = array_filter($files, function($file) { return file_exists($file); });
         $count = count($files);
 
         if ($count < 1) {

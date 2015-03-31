@@ -5,7 +5,7 @@ namespace Berk;
 class Berk
 {
     const NAME = 'berk';
-    const VERSION = '0.0.1';
+    const VERSION = '0.0.2';
     const CONFIG_FILENAME = '.berk.json';
     const EXPORT_DIRECTORY = '.berk';
 
